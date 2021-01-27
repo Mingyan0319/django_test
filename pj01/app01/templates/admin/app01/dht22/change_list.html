@@ -57,6 +57,20 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 });
 </script>
+
+const btn = document.querySelector('#reload');
+  btn.addEventListener('click', async() => {
+    const res = await fetch("/admin/app01/dht22/chart_data/");
+    const json = await res.json();
+    json.forEach((d) => {
+      d.x=d.fields.time;
+      d.y=d.fields.temp;
+    });
+    chart.data.datasets[0].data = json;
+    chart.update();
+  });
+});
+
 {% endblock %}
 
 {% block content %}
@@ -64,6 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
 <div style="width: 80%;">
   <canvas style="margin-bottom: 30px; width: 60%; height: 50%;" id="myChart"></canvas>
 </div>
+
+<button id="reload" style="margin: 1rem 0">Reload chart data</button>
 <!-- Render the rest of the ChangeList view -->
 {{ block.super }}
 {% endblock %}
