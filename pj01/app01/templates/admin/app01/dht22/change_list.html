@@ -56,9 +56,7 @@ document.addEventListener('DOMContentLoaded', () => {
     },
   });
 });
-</script>
-
-const btn = document.querySelector('#reload');
+  const btn = document.querySelector('#reload');
   btn.addEventListener('click', async() => {
     const res = await fetch("/admin/app01/dht22/chart_data/");
     const json = await res.json();
@@ -70,6 +68,9 @@ const btn = document.querySelector('#reload');
     chart.update();
   });
 });
+</script>
+
+
 
 {% endblock %}
 
