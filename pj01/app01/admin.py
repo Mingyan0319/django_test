@@ -43,7 +43,7 @@ class DHT22Admin(admin.ModelAdmin):
 
     def chart_data(self):
         return (
-            DHT22.object.all()
+            DHT22.objects.all()
         )
     
 admin . site . register ( DHT22 , DHT22Admin)
