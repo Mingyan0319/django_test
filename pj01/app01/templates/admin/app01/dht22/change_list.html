@@ -4,7 +4,6 @@
 <!-- Override extrahead to add Chart.js -->
 {% block extrahead %}
 {{ block.super }}
-<h1>Custom message!</h1>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.css" />
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js"></script>
 <script>
@@ -12,15 +11,14 @@ document.addEventListener('DOMContentLoaded', () => {
   const ctx = document.getElementById('myChart').getContext('2d');
 
   // Sample data
-    const chartData = {{ chart_data | safe }};
+    const chartData = {{ cl.chart_data | safe }};
 
   // Parse the dates to JS
   chartData.forEach((d) => {
     d.x=d.fields.time;
     d.y=d.fields.temp;
   });
-
-  // Render the chart
+// Render the chart
   const chart = new Chart(ctx, {
     type: 'line',
     data: {
@@ -28,7 +26,8 @@ document.addEventListener('DOMContentLoaded', () => {
         {
           label: 'temp',
           data: chartData,
-          backgroundColor: 'rgba(0,0,100,0.3)',
+          backgroundColor: 'rgba(220,20,20,0.5)',
+          fill:false,
         },
       ],
     },
@@ -40,8 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
             type: 'time',
             time: {
               unit: 'minute',
-              round: 'minute'
-              
+              round: 'minute',
             },
           },
         ],
@@ -55,18 +53,24 @@ document.addEventListener('DOMContentLoaded', () => {
       },
     },
   });
-});
-  const btn = document.querySelector('#reload');
-  btn.addEventListener('click', async() => {
-    const res = await fetch("/admin/app01/dht22/chart_data/");
+
+
+
+async function reloadData() {
+    const res = await fetch('{{ ajax_get_chart_data_path }}' + window.location.search);
     const json = await res.json();
     json.forEach((d) => {
-      d.x=d.fields.time;
-      d.y=d.fields.temp;
+      d.x = d.fields.time;
+      d.y = d.fields.temp;
     });
     chart.data.datasets[0].data = json;
     chart.update();
-  });
+    console.log(json);
+}
+
+const btn = document.getElementById('reload');
+btn.addEventListener('click',reloadData);
+setInterval(reloadData,5000);
 });
 </script>
 
@@ -76,8 +80,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
 {% block content %}
 <!-- Render our chart -->
-<div style="width: 80%;">
-  <canvas style="margin-bottom: 30px; width: 60%; height: 50%;" id="myChart"></canvas>
+<div style="width: 90%;">
+  <canvas style="margin-bottom: 30px; width: 50%; height: 50%;" id="myChart"></canvas>
 </div>
 
 <button id="reload" style="margin: 1rem 0">Reload chart data</button>
