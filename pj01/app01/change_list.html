@@ -1,0 +1,115 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+
+<!-- Override extrahead to add Chart.js -->
+{% block extrahead %}
+{{ block.super }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.bundle.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const ctx = document.getElementById('myChart').getContext('2d');
+
+  // Sample data
+    const chartData = {{ cl.chart_data | safe }};
+    const chartData2 = {{ cl.chart_data |safe }};
+
+  // Parse the dates to JS
+  chartData.forEach((d) => {
+    d.x=d.fields.time;
+    d.y=d.fields.temp;
+  });
+  chartData2.forEach((h) => {
+    h.x=h.fields.time;
+    h.y=h.fields.humidity;
+  });
+// Render the chart
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      datasets: [
+        {
+          label: 'temp',
+          data: chartData,
+          backgroundColor: 'rgba(220,20,20,0.5)',
+          fill:false,
+        },
+        {
+          label: 'humidity',
+          data: chartData2,
+          backgroundColor: 'rgba(30,30,220,0.5)',
+          fill:false,
+        }
+      ],
+    },
+    options: {
+      responsive: true,
+      scales: {
+        xAxes: [
+          {
+            type: 'time',
+            time: {
+              unit: 'minute',
+              round: 'minute',
+            },
+          },
+        ],
+        yAxes: [
+          {
+            ticks: {
+              beginAtZero: true,
+            },
+          },
+        ],
+      },
+    },
+  });
+
+
+
+async function reloadData() {
+    const res = await fetch('{{ ajax_get_chart_data_path }}' + window.location.search);
+    const json = await res.json();
+    json.forEach((d) => {
+      d.x = d.fields.time;
+      d.y = d.fields.temp;
+    });
+
+    chart.data.datasets[0].data = json;
+    chart.update();
+    console.log(json);
+}
+async function reloadData1() {
+    const res1 = await fetch('{{ ajax_get_chart_data_path }}' + window.location.search);
+    const json1 = await res1.json();
+    json1.forEach((h) => {
+      h.x = h.fields.time;
+      h.y = h.fields.humidity;
+    });
+
+    chart.data.datasets[1].data = json1;
+    chart.update();
+
+}
+
+const btn = document.getElementById('reload');
+btn.addEventListener('click',reloadData);
+setInterval(reloadData,5000);
+setInterval(reloadData1,5000);
+});
+</script>
+
+
+
+{% endblock %}
+
+{% block content %}
+<!-- Render our chart -->
+<div style="width: 90%;">
+  <canvas style="margin-bottom: 30px; width: 50%; height: 50%;" id="myChart"></canvas>
+</div>
+
+<button id="reload" style="margin: 1rem 0">Reload chart data</button>
+<!-- Render the rest of the ChangeList view -->
+{{ block.super }}
+{% endblock %}
